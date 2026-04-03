@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+background:#f4f6f8;
+font-family:'Poppins',sans-serif;
+padding-bottom:210px;
+color:#1b1b1b;
+}
+
+/* HEADER */
+
+.header{
+background:white;
+padding:18px 20px;
+font-weight:600;
+font-size:18px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:1px solid #eee;
+}
+
+.sub{
+font-size:12px;
+color:#888;
+}
+
+/* HERO */
+
+.hero{
+margin:15px;
+border-radius:18px;
+overflow:hidden;
+position:relative;
+background:white;
+}
+
+.hero img{
+width:100%;
+height:auto;
+display:block;
+}
+
+.overlay{
+position:absolute;
+bottom:0;
+left:0;
+right:0;
+padding:20px;
+background:linear-gradient(transparent,rgba(0,0,0,.85));
+color:white;
+}
+
+.overlay h1{
+margin:0;
+font-size:18px;
+}
+
+.overlay p{
+margin:0;
+font-size:12px;
+opacity:.9;
+}
+
+/* FORM */
+
+.form{
+background:white;
+margin:15px;
+padding:18px;
+border-radius:16px;
+box-shadow:0 3px 12px rgba(0,0,0,.04);
+}
+
+label{
+font-size:13px;
+font-weight:500;
+}
+
+input,textarea{
+width:100%;
+padding:12px;
+margin-top:5px;
+margin-bottom:10px;
+border-radius:10px;
+border:1px solid #eee;
+font-family:Poppins;
+}
+
+/* TITLE */
+
+.title{
+margin:18px 15px 5px;
+font-size:13px;
+font-weight:600;
+color:#777;
+}
+
+/* CARD */
+
+.card{
+background:white;
+margin:10px 15px;
+padding:15px;
+border-radius:14px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 2px 8px rgba(0,0,0,.03);
+border:1px solid #f1f1f1;
+}
+
+.nombre{
+font-size:15px;
+font-weight:600;
+}
+
+.desc{
+font-size:12px;
+color:#888;
+}
+
+.precio{
+margin-top:5px;
+font-weight:700;
+color:#e53935;
+}
+
+/* CONTROLES */
+
+.controls{
+display:flex;
+align-items:center;
+}
+
+.btn{
+width:34px;
+height:34px;
+border:none;
+border-radius:10px;
+background:#111;
+color:white;
+font-size:18px;
+cursor:pointer;
+}
+
+.qty{
+margin:0 12px;
+font-weight:600;
+}
+
+/* FOOTER */
+
+.footer{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:white;
+padding:15px;
+box-shadow:0 -5px 20px rgba(0,0,0,.08);
+}
+
+.total{
+font-weight:700;
+font-size:18px;
+}
+
+.pedir{
+width:100%;
+margin-top:10px;
+padding:15px;
+border:none;
+border-radius:12px;
+background:#111;
+color:white;
+font-weight:600;
+font-size:15px;
+cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<div>
+Hamburguesas Premium  
+<div class="sub">Entrega al día siguiente</div>
+</div>
+</div>
+
+<div class="hero">
+<img src="/static/hero.jpg">
+<div class="overlay">
+<h1>Las mejores hamburguesas de la ciudad</h1>
+<p>Carne 100% res · Precio mayorista · Producción diaria</p>
+</div>
+</div>
+
+<form method="POST">
+
+<div class="form">
+
+<label>Nombre cliente</label>
+<input name="cliente" required>
+
+<label>Telefono</label>
+<input name="telefono" required>
+
+<label>Direccion</label>
+<input name="direccion" required>
+
+<label>Barrio</label>
+<input name="barrio" required>
+
+<label>Observaciones</label>
+<textarea name="observaciones"></textarea>
+
+</div>
+
+<div class="title">
+Selecciona los productos
+</div>
+
+<!-- 100 -->
+<div class="card">
+<div>
+<div class="nombre">Hamburguesa 100 gramos</div>
+<div class="desc">Ideal para negocio</div>
+<div class="precio">$ 1.600</div>
+</div>
+
+<div class="controls">
+<button type="button" class="btn" onclick="menos('100',1600)">-</button>
+<div class="qty" id="qty_100">0</div>
+<button type="button" class="btn" onclick="mas('100',1600)">+</button>
+</div>
+
+<input type="hidden" name="Hamburguesa 100g" id="input_100" value="0">
+</div>
+
+<!-- caja 100 -->
+<div class="card">
+<div>
+<div class="nombre">Caja x 30 und 100g</div>
+<div class="desc">Precio mayorista</div>
+<div class="precio">$ 47.100</div>
+</div>
+
+<div class="controls">
+<button type="button" class="btn" onclick="menos('c100',47100)">-</button>
+<div class="qty" id="qty_c100">0</div>
+<button type="button" class="btn" onclick="mas('c100',47100)">+</button>
+</div>
+
+<input type="hidden" name="Caja 100g" id="input_c100" value="0">
+</div>
+
+<!-- 125 -->
+<div class="card">
+<div>
+<div class="nombre">Hamburguesa 125 gramos</div>
+<div class="desc">La más vendida</div>
+<div class="precio">$ 2.000</div>
+</div>
+
+<div class="controls">
+<button type="button" class="btn" onclick="menos('125',2000)">-</button>
+<div class="qty" id="qty_125">0</div>
+<button type="button" class="btn" onclick="mas('125',2000)">+</button>
+</div>
+
+<input type="hidden" name="Hamburguesa 125g" id="input_125" value="0">
+</div>
+
+<!-- caja 125 -->
+<div class="card">
+<div>
+<div class="nombre">Caja x 30 und 125g</div>
+<div class="desc">Precio mayorista</div>
+<div class="precio">$ 59.250</div>
+</div>
+
+<div class="controls">
+<button type="button" class="btn" onclick="menos('c125',59250)">-</button>
+<div class="qty" id="qty_c125">0</div>
+<button type="button" class="btn" onclick="mas('c125',59250)">+</button>
+</div>
+
+<input type="hidden" name="Caja 125g" id="input_c125" value="0">
+</div>
+
+<!-- 160 -->
+<div class="card">
+<div>
+<div class="nombre">Hamburguesa 160 gramos</div>
+<div class="desc">Premium parrillera</div>
+<div class="precio">$ 2.500</div>
+</div>
+
+<div class="controls">
+<button type="button" class="btn" onclick="menos('160',2500)">-</button>
+<div class="qty" id="qty_160">0</div>
+<button type="button" class="btn" onclick="mas('160',2500)">+</button>
+</div>
+
+<input type="hidden" name="Hamburguesa 160g" id="input_160" value="0">
+</div>
+
+<!-- caja 160 -->
+<div class="card">
+<div>
+<div class="nombre">Caja x 30 und 160g</div>
+<div class="desc">Precio mayorista</div>
+<div class="precio">$ 72.600</div>
+</div>
+
+<div class="controls">
+<button type="button" class="btn" onclick="menos('c160',72600)">-</button>
+<div class="qty" id="qty_c160">0</div>
+<button type="button" class="btn" onclick="mas('c160',72600)">+</button>
+</div>
+
+<input type="hidden" name="Caja 160g" id="input_c160" value="0">
+</div>
+
+<div class="footer">
+
+<div class="total">
+Total: $ <span id="total">0</span>
+</div>
+
+<button class="pedir">
+Enviar pedido
+</button>
+
+</div>
+
+</form>
+
+<script>
+
+let total = 0
+
+function mas(id,precio){
+let qty = document.getElementById("qty_"+id)
+let input = document.getElementById("input_"+id)
+let val = parseInt(qty.innerText)+1
+qty.innerText = val
+input.value = val
+total += precio
+document.getElementById("total").innerText = total
+}
+
+function menos(id,precio){
+let qty = document.getElementById("qty_"+id)
+let input = document.getElementById("input_"+id)
+let val = parseInt(qty.innerText)
+if(val>0){
+val--
+qty.innerText = val
+input.value = val
+total -= precio
+document.getElementById("total").innerText = total
+}
+}
+
+</script>
+
+</body>
+</html>
