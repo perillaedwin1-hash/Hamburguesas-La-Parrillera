@@ -6,7 +6,12 @@ import os
 import pandas as pd
 import urllib.parse
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__,
+template_folder=os.path.join(BASE_DIR,"templates"),
+static_folder=os.path.join(BASE_DIR,"static"))
+
 app.secret_key = "clave_super_segura_123"
 USUARIO = "admin"
 PASSWORD = "56161"
@@ -46,21 +51,25 @@ def logout():
 EMPRESA = "Hamburguesas La Parrillera"
 WHATSAPP = "573214539246"
 
+FACTURAS = os.path.join(BASE_DIR,"facturas")
+EXCEL = os.path.join(BASE_DIR,"excel")
+DB = os.path.join(BASE_DIR,"pedidos.db")
+
 # =========================
 # CREAR CARPETAS
 # =========================
 
-if not os.path.exists("facturas"):
-    os.makedirs("facturas")
+if not os.path.exists(FACTURAS):
+    os.makedirs(FACTURAS)
 
-if not os.path.exists("excel"):
-    os.makedirs("excel")
+if not os.path.exists(EXCEL):
+    os.makedirs(EXCEL)
 
 # =========================
 # BASE DATOS
 # =========================
 
-conn = sqlite3.connect("pedidos.db")
+conn = sqlite3.connect(DB)
 cursor = conn.cursor()
 
 cursor.execute("""
@@ -102,7 +111,7 @@ precios = {
 
 def siguiente_consecutivo():
 
-    conn = sqlite3.connect("pedidos.db")
+    conn = sqlite3.connect(DB)
     cursor = conn.cursor()
 
     cursor.execute("SELECT MAX(id) FROM pedidos")
@@ -122,94 +131,81 @@ def siguiente_consecutivo():
 
 @app.route("/", methods=["GET","POST"])
 def pedido():
+    try:
 
-    if request.method == "POST":
+        if request.method == "POST":
 
-        cliente = request.form["cliente"]
-        telefono = request.form["telefono"]
-        direccion = request.form["direccion"]
-        barrio = request.form["barrio"]
-        observaciones = request.form["observaciones"]
+            cliente = request.form.get("cliente","")
+            telefono = request.form.get("telefono","")
+            direccion = request.form.get("direccion","")
+            barrio = request.form.get("barrio","")
+            observaciones = request.form.get("observaciones","")
 
-        pedidos = []
-        total_general = 0
+            pedidos = []
+            total_general = 0
 
-        for producto, precio in precios.items():
+            for producto, precio in precios.items():
 
-            cantidad = int(request.form.get(producto,0))
+                cantidad = int(request.form.get(producto, 0) or 0)
 
-            if cantidad > 0:
+                if cantidad > 0:
 
-                total = cantidad * precio
-                total_general += total
+                    total = cantidad * precio
+                    total_general += total
 
-                pedidos.append((producto,cantidad,precio,total))
+                    pedidos.append((producto,cantidad,precio,total))
 
-        entrega = (datetime.now()+timedelta(days=1)).strftime("%Y-%m-%d")
+            if not pedidos:
+                return redirect("/")
 
-        # CONSECUTIVO REAL
-        pedido_id = siguiente_consecutivo()
+            entrega = (datetime.now()+timedelta(days=1)).strftime("%Y-%m-%d")
 
-        conn = sqlite3.connect("pedidos.db")
-        cursor = conn.cursor()
+            pedido_id = siguiente_consecutivo()
 
-        for p in pedidos:
-            cursor.execute("""
-            INSERT INTO pedidos
-            (id,cliente,telefono,direccion,barrio,observaciones,
-            producto,cantidad,valor,total,entrega,estado)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
-            """,(pedido_id,cliente,telefono,direccion,barrio,observaciones,
-                 p[0],p[1],p[2],p[3],entrega,"pendiente"))
+            conn = sqlite3.connect(DB)
+            cursor = conn.cursor()
 
-        conn.commit()
-        conn.close()
+            for p in pedidos:
+                cursor.execute("""
+                INSERT INTO pedidos
+                (id,cliente,telefono,direccion,barrio,observaciones,
+                producto,cantidad,valor,total,entrega,estado)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+                """,(pedido_id,cliente,telefono,direccion,barrio,observaciones,
+                     p[0],p[1],p[2],p[3],entrega,"pendiente"))
 
-        # =========================
-        # GENERAR PDF
-        # =========================
+            conn.commit()
+            conn.close()
 
-        generar_pdf(
-            pedido_id,
-            cliente,
-            telefono,
-            direccion,
-            barrio,
-            observaciones,
-            pedidos,
-            total_general,
-            entrega
-        )
+            texto = f"{EMPRESA}\n"
+            texto += f"Pedido No: {pedido_id}\n\n"
+            texto += f"Cliente: {cliente}\n"
+            texto += f"Telefono: {telefono}\n"
+            texto += f"Direccion: {direccion}\n"
+            texto += f"Barrio: {barrio}\n\n"
 
-        # =========================
-        # WHATSAPP
-        # =========================
+            texto += "PRODUCTOS:\n"
 
-        texto = f"{EMPRESA}\n"
-        texto += f"Pedido No: {pedido_id}\n\n"
-        texto += f"Cliente: {cliente}\n"
-        texto += f"Telefono: {telefono}\n"
-        texto += f"Direccion: {direccion}\n"
-        texto += f"Barrio: {barrio}\n\n"
+            for p in pedidos:
+                texto += f"{p[0]} x {p[1]} = ${p[3]}\n"
 
-        texto += "PRODUCTOS:\n"
+            texto += f"\nTOTAL: ${total_general}\n"
+            texto += f"Entrega: {entrega}\n"
 
-        for p in pedidos:
-            texto += f"{p[0]} x {p[1]} = ${p[3]}\n"
+            if observaciones:
+                texto += f"\nObs: {observaciones}"
 
-        texto += f"\nTOTAL: ${total_general}\n"
-        texto += f"Entrega: {entrega}\n"
+            mensaje = urllib.parse.quote(texto)
 
-        if observaciones:
-            texto += f"\nObs: {observaciones}"
+            url = f"https://api.whatsapp.com/send?phone={WHATSAPP}&text={mensaje}"
 
-        mensaje = urllib.parse.quote(texto)
+            return redirect(url)
 
-        url = f"https://wa.me/{WHATSAPP}?text={mensaje}"
+        return render_template("pedido.html", precios=precios)
 
-        return redirect(url)
+    except Exception as e:
+        return f"ERROR: {str(e)}"
 
-    return render_template("pedido.html",precios=precios)
 
 # =========================
 # GENERAR FACTURA
@@ -218,7 +214,7 @@ def pedido():
 def generar_pdf(id,cliente,telefono,direccion,barrio,
 observaciones,pedidos,total,entrega):
 
-    archivo = f"facturas/pedido_{id}.txt"
+    archivo = os.path.join(FACTURAS,f"pedido_{id}.txt")
 
     f = open(archivo,"w",encoding="utf-8")
 
@@ -252,7 +248,7 @@ def entregado(id):
     if "login" not in session:
         return redirect("/login")
 
-    conn = sqlite3.connect("pedidos.db")
+    conn = sqlite3.connect(DB)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -276,8 +272,7 @@ def rutas():
     if "login" not in session:
         return redirect("/login")
 
-
-    conn = sqlite3.connect("pedidos.db")
+    conn = sqlite3.connect(DB)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -344,7 +339,7 @@ def admin():
     if "login" not in session:
         return redirect("/login")
 
-    conn = sqlite3.connect("pedidos.db")
+    conn = sqlite3.connect(DB)
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM pedidos ORDER BY id DESC")
@@ -365,11 +360,11 @@ def excel():
     if "login" not in session:
         return redirect("/login")
 
-    conn = sqlite3.connect("pedidos.db")
+    conn = sqlite3.connect(DB)
 
     df = pd.read_sql_query("SELECT * FROM pedidos", conn)
 
-    archivo = "excel/pedidos.xlsx"
+    archivo = os.path.join(EXCEL,"pedidos.xlsx")
 
     df.to_excel(archivo,index=False)
 
@@ -379,4 +374,5 @@ def excel():
 
 # =========================
 
-app.run(debug=True)
+if __name__ == "__main__":
+    app.run()
