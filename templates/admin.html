@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<h2>Panel pedidos</h2>
+
+<a href="/excel">Exportar Excel</a>
+<br><br>
+
+<a href="/rutas">Ver rutas</a>
+
+<table border="1">
+
+<tr>
+<th>ID</th>
+<th>Cliente</th>
+<th>Telefono</th>
+<th>Direccion</th>
+<th>Barrio</th>
+<th>Producto</th>
+<th>Cant</th>
+<th>Total</th>
+</tr>
+
+{% for d in datos %}
+
+<tr>
+<td>{{d[0]}}</td>
+<td>{{d[1]}}</td>
+<td>{{d[2]}}</td>
+<td>{{d[3]}}</td>
+<td>{{d[4]}}</td>
+<td>{{d[6]}}</td>
+<td>{{d[7]}}</td>
+<td>{{d[9]}}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</html>
