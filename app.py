@@ -49,7 +49,7 @@ def logout():
 # =========================
 
 EMPRESA = "Hamburguesas La Parrillera"
-WHATSAPP = "573214539246"
+WHATSAPP = "573137770641"
 
 FACTURAS = os.path.join(BASE_DIR,"facturas")
 EXCEL = os.path.join(BASE_DIR,"excel")
